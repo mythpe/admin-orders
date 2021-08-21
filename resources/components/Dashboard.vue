@@ -10,8 +10,11 @@
               <th class='text-center'>OPEN</th>
               <th class='text-center'>CLOSE</th>
               <th class='text-center'>TOTAL</th>
-              <th class='text-center'>SUM</th>
-              <th class='text-center'>SUB</th>
+              <th class='text-center'>SUM+</th>
+              <th class='text-center'>SUB-</th>
+              <th class='text-center'>Reset</th>
+              <th class='text-center'>Reset+</th>
+              <th class='text-center'>Reset-</th>
             </tr>
             </thead>
             <tbody>
@@ -22,14 +25,20 @@
               <td>{{ $helpers.toNumberFormat(allTotal) }}</td>
               <td>{{ $helpers.toNumberFormat(totalSum) }}</td>
               <td>{{ $helpers.toNumberFormat(totalSub) }}</td>
+              <td>{{ rst }}</td>
+              <td>{{ rst_plus }}</td>
+              <td>{{ rst_minus }}</td>
             </tr>
             <tr class='text-center'>
-              <td></td>
+              <td>{{ getOpenFieldName(open_fields) }}</td>
               <td>{{ openItems.length }}</td>
               <td>{{ closeItems.length }}</td>
               <td></td>
+              <td>{{ totalOPNSM }}</td>
+              <td>{{ totalOPNSB }}</td>
               <td></td>
-              <td></td>
+              <td>{{ $helpers.toNumberFormat(lmt_up) }}</td>
+              <td>{{ $helpers.toNumberFormat(lmt_dn) }}</td>
             </tr>
             </tbody>
           </template>
@@ -109,10 +118,18 @@ import _ from 'lodash'
 export default {
   name: 'Dashboard',
   mixins: [MetaInfoMixin, GetHeadersMixin],
-  data () {
+  data() {
     return {
       center: !0,
       settingStart: 0,
+      clr_plus: 0,
+      clr_minus: 0,
+      rst: 0,
+      rst_plus: 0,
+      rst_minus: 0,
+      lmt_up: 0,
+      lmt_dn: 0,
+      open_fields: 0,
       loading: !1,
       creating: !1,
       startNumbers: -1000,
@@ -132,20 +149,30 @@ export default {
     }
   },
   methods: {
-    hasPermission (name) {
+    hasPermission(name) {
       if (!this.authUser || !name) return false
       if (this.authUser.is_admin === !0) return !0
 
-      name = name.toLowerCase();
+      name = name.toLowerCase()
       const p = this.authUser.permissions_to_string.toLowerCase().split(',')
       return p.indexOf(name) >= 0
     },
-    getSettings () {
-      this.$api.methods.setting.get().then(({ _data }) => {
-        this.settingStart = parseInt(_data?.start) || 0
-      }).catch(e => e)
+    getSettings() {
+      this.$api.methods.setting.get().then(({ _data }) => this.setSettings(_data)).catch(e => e)
     },
-    getOpenNumber () {
+    setSettings(setting) {
+      this.settingStart = parseInt(setting.start) || 0
+      this.clr_plus = parseInt(setting.clr_plus) || 0
+      this.clr_minus = parseInt(setting.clr_minus) || 0
+      this.rst = parseInt(setting.rst) || 0
+      this.rst_plus = parseInt(setting.rst_plus) || 0
+      this.rst_minus = parseInt(setting.rst_minus) || 0
+      this.lmt_up = parseInt(setting.lmt_up) || 0
+      this.lmt_dn = parseInt(setting.lmt_dn) || 0
+      this.open_fields = parseInt(setting.open_fields) || 0
+      return setting
+    },
+    getOpenNumber() {
       let num = 0
 
       do {
@@ -158,23 +185,28 @@ export default {
 
       return num
     },
-    setItemsData (data) {
+    setItemsData(data) {
       this.closeItems = data?.orders || []
       this.rankItems = data?.ranks || []
-      if(data?.user)
-      this.$root.updateProfile(data.user)
+      if (data?.user) {
+        this.$root.updateProfile(data.user)
+      }
+
+      if (data.setting) {
+        this.setSettings(data.setting)
+      }
     },
-    makeOrder (data) {
+    makeOrder(data) {
       if (this.creating) return
       this.creating = !0
       axios.post('Panel/Order/makeOrder', data).then(({ _data }) => this.setItemsData(_data)).catch(e => e).finally(() => this.creating = !1)
     },
-    fetchData () {
+    fetchData() {
       if (this.loading) return
       this.loading = !0
       axios.get('Panel/Order/getOrders').then(({ _data }) => this.setItemsData(_data)).catch(e => e).finally(() => this.loading = !1)
     },
-    iniInterval () {
+    iniInterval() {
       this.resetOpenData()
       this.fetchData()
       if (!this.openInterval) {
@@ -185,16 +217,18 @@ export default {
         }, 5 * 1000)
       }
     },
-    resetOpenData () {
+    resetOpenData() {
       this.openItems = []
       for (let i = 0; i <= 10; i++) {
+        const total = this.getOpenNumber()
         this.openItems = [...this.openItems, {
-          total: this.getOpenNumber()
+          total,
+          total_to_string: total
         }]
       }
     },
 
-    openItemClass (item) {
+    openItemClass(item) {
 
       let c = ['pointer']
       const value = item.total
@@ -209,11 +243,14 @@ export default {
 
       return c.join(' ')
     },
-    openItemClick (item) {
-      this.confirm(`Are you sure to close ${item.total}?`, () => this.makeOrder({ total: item.total }))
+    openItemClick(item) {
+      this.confirm(`Are you sure to close ${item.total}?`, () => {
+        this.openItems = this.openItems.filter(e => e.total !== item.total)
+        this.$nextTick(() => this.makeOrder({ total: item.total }))
+      })
     },
 
-    closeItemClass (item) {
+    closeItemClass(item) {
       let c = []
       if (item.close > 5 && item.close < 10) {
         // c.push(' ')
@@ -221,7 +258,7 @@ export default {
       return c.join(' ')
     },
 
-    rankItemClass (item) {
+    rankItemClass(item) {
       let c = []
       if (item.close > 5 && item.close < 10) {
         c.push(' ')
@@ -229,55 +266,62 @@ export default {
       return c.join(' ')
     }
   },
-  mounted () {
+  mounted() {
     this.getSettings()
     this.iniInterval()
   },
-  beforeDestroy () {
+  beforeDestroy() {
     if (this.openInterval) {
       clearInterval(this.openInterval)
     }
   },
   computed: {
-    hasOpenPermission () {
+    hasOpenPermission() {
       return this.hasPermission('open')
     },
-    hasClosePermission () {
+    hasClosePermission() {
       return this.hasPermission('close')
     },
-    hasRankPermission () {
+    hasRankPermission() {
       return this.hasPermission('rank')
     },
-    openHeaders () {
+    openHeaders() {
       return this.parseHeaders([
-        { value: 'total', text: 'open' }
+        { value: 'total_to_string', text: 'open' }
       ])
     },
-    getOpenItems () {
-      return this.openItems.map(e => ({ ...e, key: `open-${e.key}` }))
+    getOpenItems() {
+      return this.openItems.map(e => {
+        e = { ...e, key: `open-${e.key}` }
+        const v = e.total
+        if (v >= (this.clr_minus * -1) && v <= this.clr_plus) {
+          e.total_to_string = null
+        }
+        return e
+      })
     },
-    openTotal () {
+    openTotal() {
       let total = 0
       this.openItems.map(e => total += parseFloat(e.total) || 0)
       return total
     },
 
-    closeHeaders () {
+    closeHeaders() {
       return this.parseHeaders([
         'close',
         'username'
       ])
     },
-    getCloseItems () {
+    getCloseItems() {
       return this.closeItems.map(e => ({ ...e, key: `close-${e.key}` }))
     },
-    closeTotal () {
+    closeTotal() {
       let total = 0
       this.closeItems.map(e => total += parseFloat(e.total) || 0)
       return total
     },
 
-    rankHeaders () {
+    rankHeaders() {
       return [
         {
           text: 'Rank',
@@ -289,31 +333,36 @@ export default {
         }
       ]
     },
-    getRankItems () {
+    getRankItems() {
       return this.rankItems.map(e => ({ ...e, key: `rank-${e.key}` }))
     },
-    rankTotal () {
+    rankTotal() {
       let total = 0
       this.rankItems.map(e => total += parseFloat(e.total) || 0)
       return total
     },
 
-    absOpenTotal () {
-      return Math.abs(this.openTotal)
+    absOpenTotal() {
+      return Math.abs(this.openTotal) || 0
     },
-    absCloseTotal () {
-      return Math.abs(this.closeTotal)
+    absCloseTotal() {
+      return Math.abs(this.closeTotal) || 0
     },
 
-    allTotal () {
-      // return Math.abs(this.openTotal) + Math.abs(this.closeTotal)
-      return this.openTotal + this.closeTotal
+    allTotal() {
+      return (this.openTotal + this.closeTotal) || 0
     },
-    totalSum () {
-      return this.settingStart + this.allTotal
+    totalSum() {
+      return (this.settingStart + this.allTotal) || 0
     },
-    totalSub () {
-      return this.settingStart - this.allTotal
+    totalOPNSM() {
+      return Math.ceil(this.totalSum / this.settingStart) || 0
+    },
+    totalSub() {
+      return (this.settingStart - this.allTotal) || 0
+    },
+    totalOPNSB() {
+      return Math.ceil(this.totalSub / this.settingStart) || 0
     }
   }
 }

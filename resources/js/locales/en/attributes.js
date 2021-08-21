@@ -9,6 +9,11 @@ export default {
   role_id: 'Role',
   start: 'Start',
   rst: 'Rst',
-  rst_plus: 'Rst +',
-  rst_minus: 'Rst -'
+  rst_plus: 'Rst+',
+  rst_minus: 'Rst-',
+  lmt_up: 'LMT UP',
+  lmt_dn: 'LMT DN',
+  clr_plus: 'CLR+',
+  clr_minus: 'CLR-',
+  open_fields: 'Open fields',
 }

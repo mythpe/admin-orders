@@ -26,14 +26,15 @@ class OrderResource extends ApiResource
     {
         $model = $this->resource;
         return [
-            "id"       => (int)$model->id,
-            "value"    => (int)$model->id,
-            "key"      => (string)$model->id,
-            "text"     => (string)$model->total,
-            'name'     => (string)$model->total,
-            "total"    => (int)$model->total,
-            "close"    => (int)$model->total,
-            "username" => (string)$model->user->name,
+            "id"              => (int)$model->id,
+            "value"           => (int)$model->id,
+            "key"             => (string)$model->id,
+            "text"            => (string)$model->total,
+            'name'            => (string)$model->total,
+            "total"           => (int)$model->total,
+            "total_to_string" => (int)$model->total,
+            "close"           => (int)$model->total,
+            "username"        => (string)$model->user->name,
         ];
     }
 }

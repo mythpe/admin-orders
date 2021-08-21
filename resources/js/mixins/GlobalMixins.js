@@ -7,17 +7,17 @@ import { mapActions, mapGetters, mapMutations } from 'vuex'
 const defaultAxiosCountDown = 310
 export default {
   methods: {
-    IsAppLocale (locale) {
+    IsAppLocale(locale) {
       return this.AppLocales.find(l => l.code === locale)
     },
-    SetAppLocale (locale) {
+    SetAppLocale(locale) {
       this.AppLocale = locale
       this.$nextTick(() => window.location.reload())
     },
-    IniAppLocale () {
+    IniAppLocale() {
       this.AppLocale = localStorage.getItem(LOCALE_STORAGE_KEY) || defaultLocale
     },
-    getPageTitle () {
+    getPageTitle() {
       const t = (...a) => this.$t(...a)
       const tc = (...a) => this.$tc(...a)
       const e = (...a) => this.$te(...a)
@@ -83,7 +83,7 @@ export default {
 
       return ''
     },
-    parseAttribute (string, ...args) {
+    parseAttribute(string, ...args) {
       if (!string) return string
 
       const _ = this.$_, t = (...a) => this.$t(...a), te = (...a) => this.$te(...a)
@@ -99,68 +99,71 @@ export default {
       return string
     },
 
-    getAxiosName () {
+    getAxiosName() {
       return this.$options.name
     },
-    getAxiosItems () {
+    getAxiosItems() {
       return this.getIniAxios(this.getAxiosName())
     },
-    setIniAxios (name, v) {
+    setIniAxios(name, v) {
       this.$root.iniAxios[name] = v
     },
-    getIniAxios (name) {
+    getIniAxios(name) {
       return null
     },
-    increaseAxios (countdown = defaultAxiosCountDown) {
+    increaseAxios(countdown = defaultAxiosCountDown) {
       countdown = parseInt(countdown) || defaultAxiosCountDown
       this.$root.AxiosCountdown += countdown
       // console.log(this.$root.AxiosCountdown);
       return this.getAxiosCountdown()
     },
-    setAxiosCountdown (countdown = defaultAxiosCountDown) {
+    setAxiosCountdown(countdown = defaultAxiosCountDown) {
       this.$root.AxiosCountdown = countdown
     },
-    getAxiosCountdown () {
+    getAxiosCountdown() {
       return this.$root.AxiosCountdown
     },
-    queueAxios (func, countdown = defaultAxiosCountDown) {
+    queueAxios(func, countdown = defaultAxiosCountDown) {
       // console.log(countdown);
       setTimeout(() => setTimeout(() => this.$nextTick(func), this.increaseAxios(countdown)), 60)
+    },
+    getOpenFieldName(value) {
+      return this.openFieldsSelect.find(e => e.value === value)?.text
     }
   },
   computed: {
     APP_DEBUG: () => process.env.NODE_ENV === 'development',
     DefaultAppLocale: () => defaultLocale,
     AppRtl: {
-      set (v) {
+      set(v) {
         this.$root.$vuetify.rtl = v
       },
-      get () {
+      get() {
         const { rtl } = this.$root.$vuetify || {}
         return rtl !== undefined ? rtl : true
       }
     },
     AppDirection: {
-      set (v) {
+      set(v) {
         this.AppRtl = v.toLowerCase() === 'rtl'
       },
-      get () {
+      get() {
         return this.AppRtl ? 'rtl' : 'ltr'
       }
     },
     AppAlign: {
-      set (v) {
+      set(v) {
         this.AppRtl = v.toLowerCase() === 'right'
       },
-      get () {
+      get() {
         return this.AppRtl ? 'right' : 'left'
       }
     },
-    AppLocales () {
+    AppLocales() {
       return locales.map(code => ({ title: this.$t(code), code }))
     },
     AppLocale: {
-      set (locale = defaultLocale) {
+      set(locale = defaultLocale) {
         locale = ('' + locale).toString().toLocaleLowerCase()
 
         !this.IsAppLocale(locale) && (locale = defaultLocale)
@@ -184,56 +187,66 @@ export default {
         // moment js
         this.$moment.locale(locale)
       },
-      get () {
+      get() {
         return this.$root.$vuetify.lang.current
       }
     },
     themeDark: {
-      get () {
+      get() {
         return Boolean(mapGetters('auth', ['themeDark']).themeDark.call(this))
       },
-      set (value) {
+      set(value) {
         this.$vuetify.theme.dark = value
         mapActions('auth', ['setThemeDark']).setThemeDark.call(this, value)
       }
     },
     themeLight: {
-      get () {
+      get() {
         // console.log(this.themeDark)
         return !Boolean(this.themeDark)
       },
-      set (value) {
+      set(value) {
         value = !value
         this.$vuetify.theme.dark = value
         mapActions('auth', ['setThemeDark']).setThemeDark.call(this, value)
       }
     },
-    themeColor () {
+    themeColor() {
       return this.themeDark ? 'dark' : 'light'
     },
-    AppIsMobile () {
+    AppIsMobile() {
       return this.$root.$vuetify.breakpoint.smAndDown || false
     },
 
     authUser: {
-      set (user) {
+      set(user) {
         mapMutations('auth', ['setUser']).setUser.call(this, user)
       },
-      get () {
+      get() {
         return mapGetters('auth', ['getUser']).getUser.call(this)
       }
     },
-    apiService () {
+    apiService() {
       return this.$api.methods
     },
-    isAdmin () {
+    isAdmin() {
       return this.authUser?.role_name === 'admin'
     }
   },
-  data () {
+  data() {
     const colors = ['red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime', 'yellow', 'amber', 'orange', 'deep-orange', 'brown', 'blue-grey', 'grey']
     return {
-      userColorsSelect: colors.map(value => ({ value, text: value }))
+      userColorsSelect: colors.map(value => ({ value, text: value })),
+      openFieldsSelect: [
+        {
+          text: 'OPNSM',
+          value: 1
+        },
+        {
+          text: 'OPNSB',
+          value: 2
+        }
+      ]
     }
   }
 }

@@ -154,3 +154,17 @@ if (!function_exists('beforeLast')) {
         Str::beforeLast($attribute, $search);
     }
 }
+
+if (!function_exists('getSettings')) {
+    /**
+     * @return array
+     */
+    function getSettings()
+    {
+        $setting = setting()->all();
+        foreach ($setting as $k => $v) {
+            $setting[$k] = is_numeric($v) ? intval($v) : $v;
+        }
+        return $setting;
+    }
+}

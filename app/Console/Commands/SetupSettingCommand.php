@@ -41,10 +41,15 @@ class SetupSettingCommand extends Command
         $this->alert($this->parseFunctionName($this->signature));
         setting()->forgetAll();
         setting([
-            'start'    => 10000,
-            'rst'      => 0,
-            'rst_plus'  => 20000,
-            'rst_minus' => -10000,
+            'start'       => 10000,
+            'rst'         => 0,
+            'rst_plus'    => 0,
+            'rst_minus'   => 0,
+            'lmt_up'      => 15000,
+            'lmt_dn'      => 5000,
+            'open_fields' => 1,
+            'clr_plus'    => 100,
+            'clr_minus'   => 100,
         ])->save();
         $this->info("Create setting finish");
     }

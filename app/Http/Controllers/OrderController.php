@@ -42,6 +42,43 @@ class OrderController extends Controller
     {
         /** @var User $user */
         $user = $this->user;
+        $setting = getSettings();
+        $total = (int)Model::sum('total');
+
+        $lmt_up = ($setting['lmt_up'] ?? 0);
+        $lmt_dn = ($setting['lmt_dn'] ?? 0);
+
+        $rst = ($setting['rst'] ?? 0);
+        $rst_plus = ($setting['rst_plus'] ?? 0);
+        $rst_minus = ($setting['rst_minus'] ?? 0);
+
+
+        //$lmt_dn = 5000;
+        //$total = 4000;
+        if ($lmt_up > 0 && $total > 0 && $total >= $lmt_up) {
+            $rst += 1;
+            $rst_plus += 1;
+            $setting['rst'] = $rst;
+            $setting['rst_plus'] = $rst_plus;
+            setting($setting)->save();
+            Model::query()->delete();
+        }
+
+        if ($lmt_dn != 0 && $total < 0) {
+            $lmt_dn = abs($lmt_dn);
+            $total = abs($total);
+            if ($total >= $lmt_dn) {
+                $rst += 1;
+                $rst_minus += 1;
+                $setting['rst'] = $rst;
+                $setting['rst_minus'] = $rst_minus;
+                setting($setting)->save();
+                Model::query()->delete();
+            }
+        }
+        //d($total <= $lmt_dn, $total, $lmt_dn);
+
+        //d($setting);
         $orders = $user->canCloseOrder() ? Model::latest()->get() : [];
         //        $ranks = Model::query()->groupBy('user_id')->get(['user_id']);
         //        $ranks = DB::table(Model::getModelTable())
@@ -52,12 +89,13 @@ class OrderController extends Controller
             ->get()->map(function ($order, $index) {
                 $order->id = $index + 1;
                 return $order;
-            }):[];
+            }) : [];
         //        d($ranks);
         return $this->resource([
-            'user'   => UserResource::make($this->user),
-            'orders' => Transformer::collection($orders),
-            'ranks'  => Transformer::collection($ranks),
+            'user'    => UserResource::make($this->user),
+            'orders'  => Transformer::collection($orders),
+            'ranks'   => Transformer::collection($ranks),
+            'setting' => $setting,
         ]);
     }
 
