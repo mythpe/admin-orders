@@ -12,6 +12,8 @@ public/storage
 public/build
 public/hot
 storage/app/*
+storage/framework/*
+storage/logs/*
 storage/*.key
 .env
 Homestead.yaml
@@ -21,3 +23,4 @@ Homestead.json
 _ide_helper.php
 _ide_helper_models.php
 /*.lock
+/*-lock.json
