@@ -1,0 +1,13 @@
+
+
+
+@font-face {
+    font-family: 'Kufi';
+    font-weight: normal;
+    font-display: swap;
+    font-style: normal;
+    src: url("KufiRegular.woff2") format('woff2'),
+    url('KufiRegular.woff') format('woff'),
+    url('KufiRegular.ttf') format('truetype'),
+    url("KufiRegular.svg") format("svg");
+}

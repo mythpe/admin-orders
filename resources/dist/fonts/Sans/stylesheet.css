@@ -1,0 +1,13 @@
+
+
+
+@font-face {
+    font-family: 'Sans';
+    font-weight: normal;
+    font-display: swap;
+    font-style: normal;
+    src: url('Sans.woff2') format('woff2'),
+    url('Sans.woff') format('woff'),
+    url('Sans.ttf') format('truetype'),
+    url("Sans.svg") format("svg");
+}

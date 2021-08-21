@@ -1,0 +1,48 @@
+
+html {
+  //overflow: auto !important;
+}
+
+@import "../dist/fonts/Kufi/stylesheet.css";
+@import "../dist/fonts/Sans/stylesheet.css";
+
+::-webkit-scrollbar {
+  width: 10px;
+
+}
+
+::-webkit-scrollbar-track {
+  //background: transparent;
+  //background-color: var(--v-primary-base);
+  background-color: #6b6b6b;
+  border-radius: 0;
+  //border: 1px solid #4a4a4a;
+}
+
+::-webkit-scrollbar-thumb {
+  //background: #4a4a4a;
+  background: var(--v-secondary-base);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  //background: #4a4a4a;
+  background: var(--v-secondary-base);
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+$app-btn-margins: 10px !default;
+.v-application--is-rtl .app-row > .app-btn {
+  margin-left: $app-btn-margins;
+}
+
+.v-application--is-ltr .app-row > .app-btn {
+  margin-right: $app-btn-margins;
+}
+
+.pointer {
+  cursor: pointer !important;
+}
